@@ -1,6 +1,7 @@
 package frc.robot.Drivetrain;
 
 import com.ctre.phoenix.motorcontrol.ControlMode;
+import com.ctre.phoenix.motorcontrol.NeutralMode;
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 
 import edu.wpi.first.math.MathUtil;
@@ -18,15 +19,29 @@ public class Drivetrain extends SubsystemBase {
 
     // Sets up the motors.
     public Drivetrain() {
-        frontRight.setInverted(true);
-        backRight.setInverted(true);
+        // Configuring motor settings
+        frontLeft.configFactoryDefault();
+        frontLeft.setNeutralMode(NeutralMode.Brake);
+        frontLeft.setInverted(true);
+
+        backLeft.configFactoryDefault();
+        backLeft.setNeutralMode(NeutralMode.Brake);
+        backLeft.setInverted(true);
+
+        frontRight.configFactoryDefault();
+        frontRight.setNeutralMode(NeutralMode.Brake);
+        frontRight.setInverted(false);
+
+        backRight.configFactoryDefault();
+        backRight.setNeutralMode(NeutralMode.Brake);
+        backRight.setInverted(false);
     }
 
     /** Allows for better control of the motors on the robot */
     public void drive(double frontLeftSpeed, double frontRightSpeed, double backLeftSpeed, double backRightSpeed) {
         frontLeft.set(ControlMode.PercentOutput, frontLeftSpeed * DriveConfig.maxSpeed);
-        frontRight.set(ControlMode.PercentOutput, frontRightSpeed * DriveConfig.maxSpeed);
         backLeft.set(ControlMode.PercentOutput, backLeftSpeed * DriveConfig.maxSpeed);
+        frontRight.set(ControlMode.PercentOutput, frontRightSpeed * DriveConfig.maxSpeed);
         backRight.set(ControlMode.PercentOutput, backRightSpeed * DriveConfig.maxSpeed);
     }
 

@@ -13,6 +13,6 @@ public class DownRight extends Command {
     @Override
     // This run repeatedly while the command is scheduled.
     public void execute() {
-        drivetrain.drive(0, -1, -1, 0);
+        drivetrain.drive(0, 1, 1, 0);
     }
 }

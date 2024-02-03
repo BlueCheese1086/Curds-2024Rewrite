@@ -13,6 +13,6 @@ public class UpRight extends Command {
     @Override
     // This runs repeatedly while the command is scheduled.
     public void execute() {
-        drivetrain.drive(1, 0, 0, 1);
+        drivetrain.drive(-1, 0, 0, -1);
     }
 }

@@ -13,6 +13,6 @@ public class Left extends Command {
     @Override
     // This run repeatedly while the command is scheduled.
     public void execute() {
-        drivetrain.drive(-1, 1, 1, -1);
+        drivetrain.drive(1, -1, -1, 1);
     }
 }
