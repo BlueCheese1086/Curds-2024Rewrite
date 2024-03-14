@@ -1,8 +1,9 @@
 package frc.robot.Drivetrain.Commands.Autonomous;
 
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
-import frc.robot.Drivetrain.Drivetrain;
+
 import frc.robot.Drivetrain.Commands.Autonomous.MecanumTime.Directions;
+import frc.robot.Drivetrain.Drivetrain;
 
 // Due to a suspicious lack of encoders on NSP, these commands will be based off of time, and not distance.
 public class Autonomous extends SequentialCommandGroup {

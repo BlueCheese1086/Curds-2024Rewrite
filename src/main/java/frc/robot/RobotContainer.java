@@ -4,40 +4,51 @@
 
 package frc.robot;
 
-import edu.wpi.first.wpilibj.Joystick;
-import edu.wpi.first.wpilibj2.command.button.POVButton;
-import frc.robot.Drivetrain.Drivetrain;
-import frc.robot.Drivetrain.Commands.ArcadeDrive;
-import frc.robot.Drivetrain.Commands.Autonomous.*;
-import frc.robot.Drivetrain.Commands.POVDrive.*;
+import edu.wpi.first.wpilibj2.command.button.CommandJoystick;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
+
+import frc.robot.Drivetrain.Commands.*;
+import frc.robot.Drivetrain.Commands.Autonomous.*;
+import frc.robot.Drivetrain.Drivetrain;
 
 public class RobotContainer {
-  Drivetrain drivetrain = new Drivetrain();
-  Joystick joystick = new Joystick(0);
+    // Defining subsystems
+    private Drivetrain drivetrain = new Drivetrain();
 
-  public RobotContainer() {
-    configureBindings();
-  }
+    // Defining controllers
+    private CommandJoystick joystick = new CommandJoystick(0);
 
-  // This is where all of the buttons are bound to different commands.
-  private void configureBindings() {
-    // Allows the robot to be driven with the POV Controls on the joystick.
-    new POVButton(joystick, 0).whileTrue(new Up(drivetrain));           // Up
-    new POVButton(joystick, 45).whileTrue(new UpRight(drivetrain));     // Up-Right
-    new POVButton(joystick, 90).whileTrue(new Right(drivetrain));       // Right
-    new POVButton(joystick, 135).whileTrue(new DownRight(drivetrain));  // Down-Right
-    new POVButton(joystick, 180).whileTrue(new Down(drivetrain));       // Down
-    new POVButton(joystick, 225).whileTrue(new DownLeft(drivetrain));   // Down-Left
-    new POVButton(joystick, 270).whileTrue(new Left(drivetrain));       // Left
-    new POVButton(joystick, 315).whileTrue(new UpLeft(drivetrain));     // Up-Left
-  }
+    // Boolean that allow the user to switch between drive modes.
+    // True is ArcadeDrive, false is MecanumDrive.
+    private static boolean driveMode = true;
 
-  public Command getAutonomousCommand() {
-    return new Autonomous(drivetrain);
-  }
+    public RobotContainer() {
+        configureBindings();
+    }
 
-  public Command getTeleopCommand() {
-    return new ArcadeDrive(drivetrain, () -> -joystick.getRawAxis(1), () -> joystick.getRawAxis(4));
-  }
+    // This is where all of the buttons are bound to different commands.
+    private void configureBindings() {
+        /*
+         * Controls:
+         * B Button: Switches the drive mode from Arcade to Mecanum
+         */
+        joystick.button(2).onTrue(new InstantCommand(RobotContainer::switchDriveMode, drivetrain));
+    }
+
+    public static void switchDriveMode() {
+        driveMode = !driveMode;
+    }
+
+    public Command getAutonomousCommand() {
+        return new Autonomous(drivetrain);
+    }
+
+    public Command getTeleopCommand() {
+        if (driveMode) {
+            return new ArcadeDrive(drivetrain, () -> -joystick.getRawAxis(1), () -> joystick.getRawAxis(4));
+        }
+        return new MecanumDrive(drivetrain, () -> -joystick.getRawAxis(1), () -> joystick.getRawAxis(0),
+                () -> joystick.getRawAxis(4));
+    }
 }

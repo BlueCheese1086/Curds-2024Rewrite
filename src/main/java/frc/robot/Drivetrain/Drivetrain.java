@@ -1,74 +1,61 @@
 package frc.robot.Drivetrain;
 
+import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.NeutralMode;
-import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 
-import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.math.kinematics.MecanumDriveKinematics;
+import edu.wpi.first.math.kinematics.MecanumDriveWheelSpeeds;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
-import frc.robot.Constants.DriveConfig;
-import frc.robot.Constants.RobotMap;
+import frc.robot.Constants.DriveConstants;
 
 public class Drivetrain extends SubsystemBase {
     // Creates the motors.
-    private static TalonSRX frontLeft = new TalonSRX(RobotMap.FrontLeft);
-    private static TalonSRX frontRight = new TalonSRX(RobotMap.FrontRight);
-    private static TalonSRX backLeft = new TalonSRX(RobotMap.BackLeft);
-    private static TalonSRX backRight = new TalonSRX(RobotMap.BackRight);
+    private TalonSRX frontLeft = new TalonSRX(DriveConstants.FrontLeft);
+    private TalonSRX frontRight = new TalonSRX(DriveConstants.FrontRight);
+    private TalonSRX backLeft = new TalonSRX(DriveConstants.BackLeft);
+    private TalonSRX backRight = new TalonSRX(DriveConstants.BackRight);
+
+    // Kinematics
+    private MecanumDriveKinematics kinematics;
 
     // Sets up the motors.
     public Drivetrain() {
         // Configuring motor settings
         frontLeft.configFactoryDefault();
-        frontLeft.setNeutralMode(NeutralMode.Brake);
-        frontLeft.setInverted(true);
-
         backLeft.configFactoryDefault();
-        backLeft.setNeutralMode(NeutralMode.Brake);
-        backLeft.setInverted(true);
-
         frontRight.configFactoryDefault();
-        frontRight.setNeutralMode(NeutralMode.Brake);
-        frontRight.setInverted(false);
-
         backRight.configFactoryDefault();
+
+        frontLeft.setNeutralMode(NeutralMode.Brake);
+        backLeft.setNeutralMode(NeutralMode.Brake);
+        frontRight.setNeutralMode(NeutralMode.Brake);
         backRight.setNeutralMode(NeutralMode.Brake);
+
+        frontLeft.setInverted(true);
+        backLeft.setInverted(true);
+        frontRight.setInverted(false);
         backRight.setInverted(false);
+
+        // Creating the kinematics for the robot
+        kinematics = new MecanumDriveKinematics(
+            new Translation2d(DriveConstants.robotWidth / 2, DriveConstants.robotHeight / 2),
+            new Translation2d(DriveConstants.robotWidth / 2, DriveConstants.robotHeight / 2),
+            new Translation2d(DriveConstants.robotWidth / 2, DriveConstants.robotHeight / 2),
+            new Translation2d(DriveConstants.robotWidth / 2, DriveConstants.robotHeight / 2)
+        );
     }
 
-    /** Allows for better control of the motors on the robot */
-    public void drive(double frontLeftSpeed, double frontRightSpeed, double backLeftSpeed, double backRightSpeed) {
-        frontLeft.set(ControlMode.PercentOutput, frontLeftSpeed * DriveConfig.maxSpeed);
-        backLeft.set(ControlMode.PercentOutput, backLeftSpeed * DriveConfig.maxSpeed);
-        frontRight.set(ControlMode.PercentOutput, frontRightSpeed * DriveConfig.maxSpeed);
-        backRight.set(ControlMode.PercentOutput, backRightSpeed * DriveConfig.maxSpeed);
-    }
+    public void drive(ChassisSpeeds speeds) {
+        MecanumDriveWheelSpeeds driveSpeeds = kinematics.toWheelSpeeds(speeds);
 
-    /** Performs calculations to find the necessary speeds of each motor, and then puts it into the drive function. */
-    public void arcadeDrive(double xSpeed, double zRotation) {
-        xSpeed = MathUtil.applyDeadband(xSpeed, DriveConfig.deadband);
-        zRotation = MathUtil.applyDeadband(zRotation, DriveConfig.deadband);
-
-        xSpeed = MathUtil.clamp(xSpeed, -1.0, 1.0);
-        zRotation = MathUtil.clamp(zRotation, -1.0, 1.0);
-
-        if (DriveConfig.squareInputs) {
-            xSpeed = Math.copySign(xSpeed * xSpeed, xSpeed);
-            zRotation = Math.copySign(zRotation * zRotation, zRotation);
-        }
-
-        double leftSpeed = xSpeed - zRotation;
-        double rightSpeed = xSpeed + zRotation;
-
-        double greaterInput = Math.max(Math.abs(xSpeed), Math.abs(zRotation));
-        double lesserInput = Math.min(Math.abs(xSpeed), Math.abs(zRotation));
-        if (greaterInput != 0.0) {
-            double saturatedInput = (greaterInput + lesserInput) / greaterInput;
-            leftSpeed /= saturatedInput;
-            rightSpeed /= saturatedInput;
-        }
-
-        drive(leftSpeed, rightSpeed, leftSpeed, rightSpeed);
+        // Driving with the WheelSpeeds
+        frontLeft.set(ControlMode.PercentOutput, driveSpeeds.frontLeftMetersPerSecond);
+        backLeft.set(ControlMode.PercentOutput, driveSpeeds.rearLeftMetersPerSecond);
+        frontRight.set(ControlMode.PercentOutput, driveSpeeds.frontRightMetersPerSecond);
+        backRight.set(ControlMode.PercentOutput, driveSpeeds.rearRightMetersPerSecond);
     }
 }
